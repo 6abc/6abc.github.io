@@ -1,0 +1,60 @@
+<mxfile host="app.diagrams.net" modified="2024-01-28T11:01:37.842Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" etag="WbGAg--ixVdLEGMG7it8" version="23.0.2" type="github">
+  <diagram name="Page-1" id="LCcx6mz5Z-3h5_4dfbh8">
+    <mxGraphModel dx="1434" dy="782" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="OINRQUKEweETp7bRga4G-2" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://codeteddycom.files.wordpress.com/2019/08/codeteddy_aks.png?w=322;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="559" y="120" width="152" height="88.75" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;dashed=1;flowAnimation=1;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-5" target="OINRQUKEweETp7bRga4G-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="337" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;flowAnimation=1;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="395" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="337" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-5" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Jenkins_logo.svg/1200px-Jenkins_logo.svg.png;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="295" y="233" width="83.64" height="115.36" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.992;entryY=0.425;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;strokeWidth=3;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-9" target="OINRQUKEweETp7bRga4G-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeWidth=3;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-9" target="OINRQUKEweETp7bRga4G-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;strokeWidth=3;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="635" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-9" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://www.cloudfoundry.org/wp-content/uploads/2017/11/aae024c8ad8c-Vault_VerticalLogo_FullColor.png;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="433" y="223" width="117.23" height="117" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;" edge="1" parent="1" source="OINRQUKEweETp7bRga4G-11" target="OINRQUKEweETp7bRga4G-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-11" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://1000logos.net/wp-content/uploads/2018/11/GitHub-logo.png;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="60" y="250" width="90" height="81.35" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-12" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://camo.githubusercontent.com/c5656b3f2670ab437d46473e3e7eeb3d6a24dd33494f186e9cbacb22bacc5801/68747470733a2f2f68797a7870682e6d656469612e7a65737479696f2e636f6d2f626c6f672d6e6f6d61642d6c6973742e737667;" vertex="1" parent="1">
+          <mxGeometry x="620" y="564" width="110" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="OINRQUKEweETp7bRga4G-15" value="" style="endArrow=classic;html=1;rounded=1;strokeColor=#736CA8;fontColor=#1A1A1A;strokeWidth=3;dashed=1;flowAnimation=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="280" y="540" as="sourcePoint" />
+            <mxPoint x="770" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
