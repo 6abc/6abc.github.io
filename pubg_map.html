@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PUBG Multi-Team Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101010;
+      color: #fff;
+      text-align: center;
+    }
+    #map {
+      width: 90vw;
+      height: 90vh;
+      margin: auto;
+      border: 2px solid #333;
+      border-radius: 10px;
+    }
+    #controls {
+      margin: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #333;
+      color: #000000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #555;
+    }
+    /* 🔥 Make active team button POP visually */
+    button.active {
+      font-weight: bold;
+      transform: scale(1.15);
+      box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.6);
+      border: 2px solid #fff;
+    }
+    select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #333;
+      color: #fff;
+      border: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="controls">
+    <!-- 🌍 Map Switcher -->
+    <p for="mapSelect">Select Map: </p>
+    <select id="mapSelect">
+      <option value="zpubg_map/erangel.png" data-w="3500" data-h="3500">Erangel</option>
+      <option value="zpubg_map/miramar.png" data-w="3500" data-h="3500">Miramar</option>
+      <option value="zpubg_map/sanhok.png" data-w="3500" data-h="3500" selected>Sanhok</option>
+      <option value="zpubg_map/rondo.png" data-w="3500" data-h="3500" selected>Rondo</option>
+      <option value="zpubg_map/vikendi.png" data-w="3500" data-h="3500" selected>Vikendi</option>
+    </select>
+    <button class="team-btn" data-team="1" style="background:#ff4d4d;">Team 1</button>
+    <button class="team-btn" data-team="2" style="background:#4dff4d;">Team 2</button>
+    <button class="team-btn" data-team="3" style="background:#4d4dff;">Team 3</button>
+    <button class="team-btn" data-team="4" style="background:#ffff4d;">Team 4</button>
+    <button id="undo">Undo</button>
+    <button id="clear">Clear All</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // === INITIAL MAP SETTINGS ===
+    let imgUrl = "rondo.png";
+    let imgW = 3300;
+    let imgH = 3300;
+
+    // === INITIALIZE LEAFLET MAP ===
+    const map = L.map('map', {
+      crs: L.CRS.Simple,
+      minZoom: -2,
+    });
+
+    let overlay = L.imageOverlay(imgUrl, [[0, 0], [imgH, imgW]]).addTo(map);
+    map.fitBounds([[0, 0], [imgH, imgW]]);
+
+    // === TEAM DATA STRUCTURE ===
+    const teams = {
+      1: { color: '#ff4d4d', markers: [], line: L.polyline([], { color: '#ff4d4d', weight: 3 }).addTo(map) },
+      2: { color: '#4dff4d', markers: [], line: L.polyline([], { color: '#4dff4d', weight: 3 }).addTo(map) },
+      3: { color: '#4d4dff', markers: [], line: L.polyline([], { color: '#4d4dff', weight: 3 }).addTo(map) },
+      4: { color: '#ffff4d', markers: [], line: L.polyline([], { color: '#ffff4d', weight: 3 }).addTo(map) },
+    };
+
+    let activeTeam = 1;
+
+    // === TEAM SELECTION ===
+    const teamButtons = document.querySelectorAll('.team-btn');
+    teamButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        teamButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTeam = parseInt(btn.dataset.team);
+      });
+    });
+    teamButtons[0].classList.add('active');
+
+    // === CLICK TO ADD MARKER FOR ACTIVE TEAM ===
+    map.on('click', (e) => {
+      const team = teams[activeTeam];
+      const marker = L.circleMarker(e.latlng, {
+        radius: 6,
+        color: team.color,
+        fillColor: team.color,
+        fillOpacity: 0.9
+      }).addTo(map);
+
+      marker.bindPopup(`Team ${activeTeam} - Point ${team.markers.length + 1}`).openPopup();
+      team.markers.push(marker);
+
+      const points = team.markers.map(m => m.getLatLng());
+      team.line.setLatLngs(points);
+    });
+
+    // === UNDO LAST POINT (for active team) ===
+    document.getElementById('undo').addEventListener('click', () => {
+      const team = teams[activeTeam];
+      const last = team.markers.pop();
+      if (last) map.removeLayer(last);
+      team.line.setLatLngs(team.markers.map(m => m.getLatLng()));
+    });
+
+    // === CLEAR ALL TEAMS ===
+    document.getElementById('clear').addEventListener('click', () => {
+      Object.values(teams).forEach(t => {
+        t.markers.forEach(m => map.removeLayer(m));
+        t.line.setLatLngs([]);
+        t.markers = [];
+      });
+    });
+
+    // === MAP SWITCHING ===
+    const mapSelect = document.getElementById('mapSelect');
+    mapSelect.addEventListener('change', (e) => {
+      const selected = e.target.selectedOptions[0];
+      imgUrl = selected.value;
+      imgW = parseInt(selected.dataset.w);
+      imgH = parseInt(selected.dataset.h);
+
+      // remove old overlay
+      if (overlay) map.removeLayer(overlay);
+
+      // reset bounds and add new overlay
+      const newBounds = [[0, 0], [imgH, imgW]];
+      overlay = L.imageOverlay(imgUrl, newBounds).addTo(map);
+      map.fitBounds(newBounds);
+    });
+  </script>
+</body>
+</html>
