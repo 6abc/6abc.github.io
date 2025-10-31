@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PUBG Multi-Team Tracker</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+    }
+    #map {
+      width: 100%;
+      height: 75vh;
+      border-radius: 8px;
+      border: 1px solid var(--bs-border-color);
+    }
+    .team-btn, .tool-btn {
+      min-width: 100px;
+      transition: all 0.2s;
+    }
+    .active-btn {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      border: 4px solid var(--bs-info) !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid py-3">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">PUBG Multi-Team Tracker</h3>
+    <button id="themeToggle" class="btn btn-outline-secondary">
+      <span id="themeIcon">🌙</span> Toggle Theme
+    </button>
+  </div>
+
+  <!-- Controls -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <label for="mapSelect" class="form-label mb-0 me-2">Map:</label>
+        <select id="mapSelect" class="form-select form-select-sm d-inline-block w-auto">
+          <option value="zpubg_map/rondo.png" data-w="3500" data-h="3500">Rondo</option>
+          <option value="zpubg_map/erangel.png" data-w="3500" data-h="3500">Erangel</option>
+          <option value="zpubg_map/miramar.png" data-w="3500" data-h="3500">Miramar</option>
+          <option value="zpubg_map/sanhok.png" data-w="3500" data-h="3500">Sanhok</option>
+          <option value="zpubg_map/vikendi.png" data-w="3500" data-h="3500">Vikendi</option>
+        </select>
+
+        <div class="vr mx-2"></div>
+
+        <!-- Team Buttons -->
+        <button class="btn btn-sm team-btn" data-team="1" style="background:#ff4d4d; border-color:#ff4d4d; color:#000;">Team 1</button>
+        <button class="btn btn-sm team-btn" data-team="2" style="background:#4dff4d; border-color:#4dff4d; color:#000;">Team 2</button>
+        <button class="btn btn-sm team-btn" data-team="3" style="background:#4d4dff; border-color:#4d4dff; color:#fff;">Team 3</button>
+        <button class="btn btn-sm team-btn" data-team="4" style="background:#ffff4d; border-color:#ffff4d; color:#000;">Team 4</button>
+
+        <div class="vr mx-2"></div>
+
+        <!-- Action Buttons -->
+        <button id="undo" class="btn btn-sm btn-warning">↶ Undo</button>
+        <button id="clear" class="btn btn-sm btn-danger">Clear All</button>
+        <button id="download" class="btn btn-sm btn-success">📥 Download</button>
+        <div class="vr mx-2"></div>
+
+        <!-- Tool Buttons (inline with undo/clear/download) -->
+        <button id="planeMode" class="btn btn-sm btn-outline-info tool-btn">✈️ Plane Path</button>
+        <button id="zoneMode" class="btn btn-sm btn-outline-primary tool-btn">🎯 Last Zone</button>
+
+        <div class="vr mx-2"></div>
+
+        <!-- Visibility Toggles -->
+        <button id="togglePlane" class="btn btn-sm btn-outline-light">👁️ Plane</button>
+        <button id="toggleZone" class="btn btn-sm btn-outline-light">👁️ Zone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Settings -->
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+      <label for="teamName" class="form-label mb-0">Team Name:</label>
+      <input id="teamName" type="text" class="form-control form-control-sm" placeholder="Enter team name" style="min-width:200px;max-width:300px;">
+      <label for="teamLogo" class="form-label mb-0 ms-3">Logo:</label>
+      <input id="teamLogo" type="file" class="form-control form-control-sm" accept="image/*" style="max-width:250px;">
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="card">
+    <div class="card-body p-2">
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === Theme Toggle ===
+  const html = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const savedTheme = localStorage.getItem('pubg-tracker-theme') || 'dark';
+  html.setAttribute('data-bs-theme', savedTheme);
+  themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+  themeToggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-bs-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-bs-theme', next);
+    themeIcon.textContent = next === 'dark' ? '🌙' : '☀️';
+    localStorage.setItem('pubg-tracker-theme', next);
+  });
+
+  // === Map Setup ===
+  let imgUrl = "zpubg_map/rondo.png";
+  let imgW = 3500;
+  let imgH = 3500;
+  const map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
+  let overlay = L.imageOverlay(imgUrl, [[0, 0], [imgH, imgW]]).addTo(map);
+  map.fitBounds([[0, 0], [imgH, imgW]]);
+
+  // === Teams ===
+  const teams = {
+    1: { name:"Team 1", color:'#ff4d4d', markers:[], line:L.polyline([], {color:'#ff4d4d',weight:3}).addTo(map), logo:null },
+    2: { name:"Team 2", color:'#4dff4d', markers:[], line:L.polyline([], {color:'#4dff4d',weight:3}).addTo(map), logo:null },
+    3: { name:"Team 3", color:'#4d4dff', markers:[], line:L.polyline([], {color:'#4d4dff',weight:3}).addTo(map), logo:null },
+    4: { name:"Team 4", color:'#ffff4d', markers:[], line:L.polyline([], {color:'#ffff4d',weight:3}).addTo(map), logo:null },
+  };
+
+  let activeTeam = 1;
+  const teamButtons = document.querySelectorAll('.team-btn');
+  teamButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      teamButtons.forEach(b => b.classList.remove('active-btn'));
+      btn.classList.add('active-btn');
+      activeTeam = parseInt(btn.dataset.team);
+      document.getElementById('teamName').value = teams[activeTeam].name || "";
+      deactivateTools();
+    });
+  });
+  teamButtons[0].classList.add('active-btn');
+
+  // === Tool Modes ===
+  let planeMode = false;
+  let zoneMode = false;
+  const planePath = L.polyline([], { color:'#00ffff', weight:5, dashArray:'5,5' }).addTo(map);
+  const zoneCircle = L.circle([0, 0], { radius:0, color:'#ff00ff', fillOpacity:0.25 }).addTo(map);
+  let zoneMarker = null;
+  let planeVisible = true, zoneVisible = true;
+
+  const planeBtn = document.getElementById('planeMode');
+  const zoneBtn = document.getElementById('zoneMode');
+
+  function deactivateTools() {
+    planeMode = zoneMode = false;
+    planeBtn.classList.remove('active-btn');
+    zoneBtn.classList.remove('active-btn');
+  }
+
+  planeBtn.addEventListener('click', () => {
+    planeMode = !planeMode;
+    zoneMode = false;
+    planeBtn.classList.toggle('active-btn', planeMode);
+    zoneBtn.classList.remove('active-btn');
+  });
+
+  zoneBtn.addEventListener('click', () => {
+    zoneMode = !zoneMode;
+    planeMode = false;
+    zoneBtn.classList.toggle('active-btn', zoneMode);
+    planeBtn.classList.remove('active-btn');
+  });
+
+  // === Map Click ===
+  map.on('click', (e) => {
+    if (planeMode) {
+      const pts = planePath.getLatLngs();
+      pts.push(e.latlng);
+      planePath.setLatLngs(pts);
+      return;
+    }
+    if (zoneMode) {
+      if (zoneMarker) map.removeLayer(zoneMarker);
+      zoneMarker = L.marker(e.latlng, { draggable:true }).addTo(map);
+      zoneMarker.on('drag', (ev) => zoneCircle.setLatLng(ev.target.getLatLng()));
+      zoneCircle.setLatLng(e.latlng).setRadius(30);
+      return;
+    }
+
+    const t = teams[activeTeam];
+    const logo = t.logo;
+    let marker;
+    if (logo) {
+      const icon = L.icon({ iconUrl: logo, iconSize:[30,30], iconAnchor:[15,15] });
+      marker = L.marker(e.latlng, { icon }).addTo(map);
+    } else {
+      marker = L.circleMarker(e.latlng, { radius:6, color:t.color, fillColor:t.color, fillOpacity:0.9 }).addTo(map);
+    }
+    marker.bindPopup(`${t.name} - Point ${t.markers.length + 1}`).openPopup();
+    t.markers.push(marker);
+    t.line.setLatLngs(t.markers.map(m => m.getLatLng()));
+  });
+
+  // === Name & Logo ===
+  document.getElementById('teamName').addEventListener('input', e => {
+    teams[activeTeam].name = e.target.value || `Team ${activeTeam}`;
+    teamButtons[activeTeam - 1].innerText = teams[activeTeam].name;
+  });
+  document.getElementById('teamLogo').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => teams[activeTeam].logo = ev.target.result;
+    reader.readAsDataURL(file);
+  });
+
+  // === Undo / Clear ===
+  document.getElementById('undo').addEventListener('click', () => {
+    const t = teams[activeTeam];
+    const last = t.markers.pop();
+    if (last) map.removeLayer(last);
+    t.line.setLatLngs(t.markers.map(m => m.getLatLng()));
+  });
+  document.getElementById('clear').addEventListener('click', () => {
+    Object.values(teams).forEach(t => {
+      t.markers.forEach(m => map.removeLayer(m));
+      t.line.setLatLngs([]);
+      t.markers = [];
+    });
+    planePath.setLatLngs([]);
+    zoneCircle.setLatLng([0, 0]).setRadius(0);
+    if (zoneMarker) { map.removeLayer(zoneMarker); zoneMarker = null; }
+  });
+
+  // === Map Switching ===
+  document.getElementById('mapSelect').addEventListener('change', (e) => {
+    const sel = e.target.selectedOptions[0];
+    imgUrl = sel.value;
+    imgW = parseInt(sel.dataset.w);
+    imgH = parseInt(sel.dataset.h);
+    if (overlay) map.removeLayer(overlay);
+    overlay = L.imageOverlay(imgUrl, [[0, 0], [imgH, imgW]]).addTo(map);
+    map.fitBounds([[0, 0], [imgH, imgW]]);
+  });
+
+    // === Visibility Toggles with Icon Change ===
+    const togglePlaneBtn = document.getElementById('togglePlane');
+    const toggleZoneBtn = document.getElementById('toggleZone');
+
+    togglePlaneBtn.addEventListener('click', () => {
+      planeVisible = !planeVisible;
+      if (planeVisible) {
+        planePath.addTo(map);
+        togglePlaneBtn.innerHTML = "👁️ Plane";
+        togglePlaneBtn.classList.add('active-btn');
+      } else {
+        map.removeLayer(planePath);
+        togglePlaneBtn.innerHTML = "🚫 Plane";
+        togglePlaneBtn.classList.remove('active-btn');
+      }
+    });
+
+    toggleZoneBtn.addEventListener('click', () => {
+      zoneVisible = !zoneVisible;
+      if (zoneVisible) {
+        zoneCircle.addTo(map);
+        if (zoneMarker) zoneMarker.addTo(map);
+        toggleZoneBtn.innerHTML = "👁️ Zone";
+        toggleZoneBtn.classList.add('active-btn');
+      } else {
+        map.removeLayer(zoneCircle);
+        if (zoneMarker) map.removeLayer(zoneMarker);
+        toggleZoneBtn.innerHTML = "🚫 Zone";
+        toggleZoneBtn.classList.remove('active-btn');
+      }
+    });
+
+  // === Download ===
+  document.getElementById('download').addEventListener('click', () => {
+    const el = document.getElementById('map');
+    domtoimage.toPng(el, {
+      quality: 1,
+      bgcolor: html.getAttribute('data-bs-theme') === 'dark' ? '#212529' : '#ffffff'
+    }).then(dataUrl => {
+      const a = document.createElement('a');
+      a.download = 'pubg_team_tracker.png';
+      a.href = dataUrl;
+      a.click();
+    }).catch(err => console.error('Download failed:', err));
+  });
+</script>
+</body>
+</html>
